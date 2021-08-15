@@ -1,0 +1,100 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: Cloudinary listener blueprint
+
+Parameters:
+    CloudinaryListenerS3:
+        Type: "String"
+        Description: "Name of s3 bucket to host artifacts uploaded by CloudFormation "
+    CloudinaryListenerUploadPrefix:
+        Type: "String"
+        Description: "The Cloudinary API upload prefix URL"
+        Default: "https://api.cloudinary.com"
+Resources:
+    cldListenerSecretA:
+        Type: AWS::SecretsManager::Secret
+        Properties:
+            Name: cldListenerSecretA
+            Description: This is the "API Environment variable", that located in the Account Details section at from https://cloudinary.com/console
+            SecretString: '{"cloud_name": "CLOUDINARY_URL=cloudinary://API_KEY:API_SECRET@CLOUD_NAME/CNAME?cname=CNAME"}'
+    cldListenerAPI:
+        Type: AWS::Serverless::Api
+        Properties:
+            StageName: dev
+    CloudinarySDKLayer:
+        Type: AWS::Serverless::LayerVersion
+        Properties:
+            LayerName: CloudinarySDK
+            Description: pycloudinary 1.26.0
+            ContentUri:
+                Bucket: !Ref CloudinaryListenerS3
+                Key: CloudinarySDK.zip
+            CompatibleRuntimes:
+                - python3.8
+                - python3.7
+                - python3.6
+            LicenseInfo: MIT
+            RetentionPolicy: Retain
+    cldListenerUtilsLayer:
+        Type: AWS::Serverless::LayerVersion
+        Properties:
+            LayerName: cldListenerUtils
+            Description: cldListenerUtils 1.1.0
+            ContentUri:
+                Bucket: !Ref CloudinaryListenerS3
+                Key: cldListenerUtils.zip
+            CompatibleRuntimes:
+              - python3.8
+              - python3.7
+              - python3.6
+            LicenseInfo: 'MIT'
+            RetentionPolicy: Retain
+    cldListenerFunction:
+        Type: AWS::Serverless::Function
+        Properties:
+            Handler: index.lambda_handler
+            Runtime: python3.8
+            Policies:
+            - Statement:
+              - Sid: cldListenerSecretAManagerPolicy
+                Action:
+                - secretsmanager:GetSecretValue
+                - secretsmanager:DeleteSecret
+                Effect: Allow
+                Resource: 
+                    - !Ref cldListenerSecretA
+            Timeout: 15
+            Environment:
+                Variables:
+                    secret_name: cldListenerSecretA
+                    secret_selector: cloud_name
+                    upload_prefix: !Ref CloudinaryListenerUploadPrefix
+            Layers:
+                - !Ref CloudinarySDKLayer
+                - !Ref cldListenerUtilsLayer
+            CodeUri:
+                Bucket: !Ref CloudinaryListenerS3
+                Key: index.zip
+            Events:
+                cldListener:
+                    Type: Api
+                    Properties:
+                        Path: /cldListener
+                        Method: POST
+                        RestApiId:
+                            Ref: cldListenerAPI
+    lambdaLogGroup:
+        Type: AWS::Logs::LogGroup
+        Properties:
+            LogGroupName: !Sub "/aws/lambda/${cldListenerFunction}"
+            RetentionInDays: 90
+Outputs:
+    cldListenerAPI:
+        Description: "API Gateway endpoint URL for the Dev stage for clsListenerFunction"
+        Value: !Sub "https://${cldListenerAPI}.execute-api.${AWS::Region}.amazonaws.com/dev/cldListener"
+    cldListenerFunction:
+        Description: "cldListener Lambda Function"
+        Value: !Ref cldListenerFunction
+    cldListenerSecretA:
+        Description: "cldListener SecretsManager"
+        Value: !Ref cldListenerSecretA
