@@ -1,10 +1,8 @@
 # Cloudinary
 
-Cloudinary is a cloud service that offers a solution to a web application's entire image management pipeline.
-
-Easily upload images to the cloud. Automatically perform smart image resizing, cropping and conversion without installing any complex software. Integrate Facebook or Twitter profile image extraction in a snap, in any dimension and style to match your website's graphics requirements. Images are seamlessly delivered through a fast CDN, and much much more.
-
-Cloudinary provides URL and HTTP based APIs that can be easily integrated with any Web development framework.
+Cloudinary is a powerful media API for websites and mobile apps. We enable developers to efficiently work with media 
+assets at every stage of the process, including managing, transforming, optimizing, and delivering images and videos 
+via multiple CDNs. Cloudinary provides responsive, personalized, visual media experiences to viewers on any device.
 
 ## Description
 
