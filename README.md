@@ -65,6 +65,8 @@ aws cloudformation deploy \
 4. Check Cloudwatch for the created log entries
 
 ## Optional - create packages from sources
+Here we create the different Lambda layers. This is useful when need to upgrade the current libs, add additional libs, or redistribute the main app code (for a colleague, or your IT DevOps team).
+
     mkdir python
     python3 -m pip install --target ./python cloudinary
     zip -r9 CloudinarySDK.zip python
@@ -74,3 +76,12 @@ aws cloudformation deploy \
     rm -rf python/*
     zip -j9 index.zip index.py
 Upload all ZIP files to your source bucket as specified in the [Installing](#installing) section, step #1.
+
+## Files in distribution
+* CloudinarySDK.zip - The Cloudinary Python SDK packaged as an AWS Lambda Layer
+* cldListenerUtils.py - A wrapper of the Cloudinary SDK and AWS SDK for abstraction and simplification of the web listener code
+* cldListenerUtils.zip - The above wrapper packaged as an AWS Lambda Layer
+* index.py - the blueprint sample code
+* index.zip - the above sample code packaged as an AWS Lambda code
+* testEvent.json - This is a test event to associate with the web listener Lambda, to allow unit testing
+* serverless.yml - the cloudformation template
