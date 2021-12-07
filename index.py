@@ -1,5 +1,5 @@
 '''
-The cldListener blueprint. Read further here: <TBD>
+The cldListener blueprint. Read further here: https://cloudinary.com/blog/a_blueprint_for_aws_secured_webhook_listeners_for_cloudinary
 '''
 import logging
 import json
